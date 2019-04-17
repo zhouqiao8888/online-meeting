@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.stylefeng.guns.rest.common.persistence.dao.MoocFilmTMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.stylefeng.guns.rest.common.persistence.model.MoocFilmT">
+        <id column="UUID" property="uuid" />
+        <result column="film_name" property="filmName" />
+        <result column="film_type" property="filmType" />
+        <result column="img_address" property="imgAddress" />
+        <result column="film_score" property="filmScore" />
+        <result column="film_preSaleNum" property="filmPresalenum" />
+        <result column="film_box_office" property="filmBoxOffice" />
+        <result column="film_source" property="filmSource" />
+        <result column="film_cats" property="filmCats" />
+        <result column="film_area" property="filmArea" />
+        <result column="film_date" property="filmDate" />
+        <result column="film_time" property="filmTime" />
+        <result column="film_status" property="filmStatus" />
+    </resultMap>
+    
+    <select id="getFilmDetailByIdOrName" parameterType="map" resultType="com.stylefeng.guns.api.film.vo.FilmDetailVO">
+    	SELECT
+		film.`film_name` AS filmName,
+		info.`film_en_name` AS filmEnName,
+		film.`img_address` AS imgAddress,
+		film.`film_score` AS score,
+		CONCAT(info.`film_score_num`, '万人评分') AS scoreNum,
+		CONCAT(film.`film_box_office` / 10000, '亿') AS totalBox,
+		
+		(SELECT GROUP_CONCAT(show_name SEPARATOR ', ') FROM mooc_cat_dict_t 
+		WHERE FIND_IN_SET(UUID ,
+		(SELECT REPLACE(TRIM(BOTH '#' FROM film_cats), '#', ',') FROM mooc_film_t t WHERE t.uuid = film.uuid))) AS info01,
+		
+		CONCAT((SELECT show_name FROM mooc_source_dict_t source WHERE source.uuid = film.film_source), ' / ', info.`film_length`, '分钟') AS info02,
+		CONCAT(film.`film_time`, ' ', (SELECT show_name FROM mooc_source_dict_t source WHERE source.uuid = film.`film_source`), '上映') AS info03
+		
+		FROM `mooc_film_t` AS film JOIN `mooc_film_info_t` AS info 
+		ON film.`UUID` = info.`UUID`
+		<where>
+			<if test="searchType == 0">
+				 film.`UUID` = #{searchParam}
+			</if>
+			<if test="searchType == 1">
+				 film.`film_name` LIKE CONCAT('%', #{searchParam}, '%')
+			</if>
+		</where>
+    </select>
+
+	<select id="getFilmDescByIdOrName" parameterType="map" resultType="com.stylefeng.guns.api.film.vo.FilmDescVO">
+    	SELECT info.`biography` AS biography, 
+		info.`film_id` AS filmId
+		FROM mooc_film_info_t info 
+		LEFT JOIN mooc_film_t film ON info.`film_id` = film.`UUID`
+		<where>
+			<if test="searchType == 0">
+				 film.`UUID` = #{searchParam}
+			</if>
+			<if test="searchType == 1">
+				 film.`film_name` LIKE CONCAT('%', #{searchParam}, '%')
+			</if>
+		</where>
+    </select>
+    
+    <select id="getDirectorInfoByIdOrName" parameterType="map" resultType="com.stylefeng.guns.api.film.vo.ActorInfoVO">
+    	SELECT actor.actor_img AS imgAddress,
+		actor.actor_name AS directorName 
+		FROM mooc_film_t film 
+		LEFT JOIN mooc_film_info_t info 
+		ON film.`UUID` = info.`film_id` 
+		LEFT JOIN mooc_actor_t actor 
+		ON info.`director_id` = actor.uuid
+		<where>
+			<if test="searchType == 0">
+				 film.`UUID` = #{searchParam}
+			</if>
+			<if test="searchType == 1">
+				 film.`film_name` LIKE CONCAT('%', #{searchParam}, '%')
+			</if>
+		</where>
+    </select>
+    
+    <select id="getActorsInfoByIdOrName" parameterType="map" resultType="com.stylefeng.guns.api.film.vo.ActorInfoVO">
+    	SELECT actor.actor_img AS imgAddress,
+		actor.actor_name AS actorName,
+		filmActor.role_name AS roleName 
+		FROM mooc_film_t film 
+		LEFT JOIN mooc_film_actor_t filmActor
+		ON filmActor.film_id = film.`UUID` 
+		LEFT JOIN mooc_actor_t actor
+		ON filmActor.actor_id = actor.uuid
+		<where>
+			<if test="searchType == 0">
+				 film.`UUID` = #{searchParam}
+			</if>
+			<if test="searchType == 1">
+				 film.`film_name` LIKE CONCAT('%', #{searchParam}, '%')
+			</if>
+		</where>
+    </select>
+    
+    <select id="getFilmImgsByIdOrName" parameterType="map" resultType="string">
+    	SELECT info.`film_imgs` FROM mooc_film_info_t info 
+		LEFT JOIN mooc_film_t film ON info.`film_id` = film.`UUID`
+		<where>
+			<if test="searchType == 0">
+				 film.`UUID` = #{searchParam}
+			</if>
+			<if test="searchType == 1">
+				 film.`film_name` LIKE CONCAT('%', #{searchParam}, '%')
+			</if>
+		</where>
+    </select>
+</mapper>

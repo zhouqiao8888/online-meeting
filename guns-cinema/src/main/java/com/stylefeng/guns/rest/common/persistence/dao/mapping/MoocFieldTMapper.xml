@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.stylefeng.guns.rest.common.persistence.dao.MoocFieldTMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.stylefeng.guns.rest.common.persistence.model.MoocFieldT">
+        <id column="UUID" property="uuid" />
+        <result column="cinema_id" property="cinemaId" />
+        <result column="film_id" property="filmId" />
+        <result column="begin_time" property="beginTime" />
+        <result column="end_time" property="endTime" />
+        <result column="hall_id" property="hallId" />
+        <result column="hall_name" property="hallName" />
+        <result column="price" property="price" />
+    </resultMap>
+    
+    <select id="getFilmIdsByCinemaId" parameterType="int" resultType="int">
+    	SELECT DISTINCT film_id AS filmId FROM mooc_field_t WHERE cinema_id = #{cinemaId}
+    </select>
+    
+    <select id="getFieldVO" parameterType="int" resultType="com.stylefeng.guns.api.cinema.vo.FieldVO">
+    	SELECT 
+		  f.`cinema_id` AS cinemaId,
+		  f.`UUID` AS fieldId,
+		  f.`film_id` AS filmId,
+		  f.`price` AS filmPrice 
+		FROM
+		  mooc_field_t f 
+		WHERE UUID = #{fieldId} 
+    </select>
+
+</mapper>
